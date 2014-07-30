@@ -1,0 +1,151 @@
+Using the Bytetrain
+-------------------
+
+THe Bytetrain is designed to be embedded into other systems and applications,
+however, it is also possible to use it directly. This is not for the faint of
+heart though - it's most definitely a command-line, console sort of experience
+rather than anything like using a nice GUI.
+
+To begin using the Bytetrain for the first time, you need a Linux machine
+with a gcode-talking machine attached to it via a serial port (which is most
+likely an emulated one over USB). For example, an Ultimaker Original
+contains an Arduino Mega which provides a serial-over-USB connection.
+
+The next step is to start up the Bytetrain. The only Perl pre-requisites are
+probably already provided with your Perl distribution, although you may need
+to install a couple of CPAN modules if not (see cpan.org for help with that).
+The Bytetrain can be started on the command line, and will will in the
+foreground thusly:
+
+	$ ./bytetrain.pl
+
+Ordinarily, the Bytetrain doesn't need any special user permissions and
+should be run as an ordinary user (although it's okay to run as root if you
+want to). It will need to access the serial USB device, so you may need to
+set up suitable user/group membership for that to work.
+
+When run, the Bytetrain doesn't appear to do very much. All interaction with
+it is via two Unix-level FIFOs. Two utility scripts are provided to do this
+in a simple way. In another terminal window, run "hear.pl". This script
+simply echos to STDOUT anything it receives from the Bytetrain.
+
+Next run 'say.pl' with some arguments (see below). The simplest command
+to issue to the Bytetrain is 'STATUS'. Therefore, run:
+
+	$ ./say.p STATUS
+
+The say command doesn't output anything, but by now, hear.pl will have printed
+something like this:
+
+2014/30/07 18:28:58: STATUS: printing=0 filename="(undef)" gcode_okay=0 gcode_open=0 gcode_popped=0 gcode_read=0 lines_read=0 ack=0 checksum_error=0 direct_sent=0 flow_error=0 gcode_sent=0 ok=0 ots=1 paused=0 connected=0 port=(undef) speed=0
+
+If you see something like this, then it means you're successfully talking to,
+and listening to the Bytetrain. The next thing to do is to connect to your
+machine's serial port. For example:
+
+	$ ./say SERIAL /dev/ttyACM0 250000
+
+Here, we're saying to connect to a device that has become available as
+/dev/ttyACM0, at baud rate 250000. In fact, 250000 is the default so you
+only need to specify anything there if you want a different speed (eg. 115200).
+Your machine may be on a different /dev device, /dev/ttyUSB0 is another
+common one.
+
+Assuming you've connected successfully, your machine should have reset
+and will probably have send lots of startup information down the serial port.
+hear.pl will have echoed it all to STDOUT; any serial received from a
+machine is prefixed with "RX:".
+
+What you do next depends on your machine type and how you generate gcode.
+If you're able to print immediately, then you could type:
+
+	$ ./say PRINT /path/to/some.gcode
+
+Again, you should see some acknowledgement from hear.pl, and hopefully
+your machine will start to print. There are other commands available
+to control the Bytetrain, which are documented below.
+
+Bytetrain Commands
+------------------
+All Bytetrain commands are in UPPER case only. Anything that it doesn't
+understand will be ignored. Anything that it does understand will be
+acknowledged via a suitable line in the output channel.
+
+ABORT
+Abort a print entirely. If a print is running, no further gcode will be
+sent, the file will be closed and various internal memory states will be
+reset in readiness for a future print. No special commands are sent to
+the printer, so it may be wise to move the print head out of the way,
+turn off heaters and so on after issuing this command.
+
+DEBUG
+Enable gcode debugging. All gcode sent to the serial port will also be
+sent to the output channel. All acknowledgements received from the machine
+will be sent to the output channel. Also see NODEBUG.
+
+GCODE <text>
+Send arbitrary (gcode) to the machine. Any arguments to this command will be
+sent directly to the machine. If it's printing a file, then the command will
+be injected into the gcode flow (without a line number or checksum) as soon
+as possible (usually within a command or two).
+
+NODEBUG
+Disable gcode debugging (see DEBUG).
+
+PAUSE
+Pause an active print (if any). The Bytetrain will immediately stop sending
+further gcode commands (except those issued by the GCODE command). There
+may be one or two commands "in flight", so pausing may not be instant. No
+special machine handling is performed, so be careful to send any safety
+gcode after issuing this command.
+
+PRINT <file>
+Ask the Bytetrain to print a file of gcode commands. The argument should
+be a full path to a text file with gcode commands in it. The Bytetrain will
+try to print any file you ask it to, so be careful not to try to print
+JPEG pictures or your kernel ;-). The Bytetrain needs read-access to the
+specified file, and will keep the file open for the duration of the print.
+Changing the file while it is being printed is strongly discouraged.
+
+RESUME
+Resume after pausing (by PAUSE command). Any file being printed will be
+immediately resumed without sending any special recovery commands. Be sure
+to prime the printer correctly before resuming a print.
+
+SERIAL <port|disconnect> [baudrate]
+Tell the Bytetrain to connect, or disconnect from a serial port. The port
+needs to be a character special file, and needs to be a full path name.
+This will usually be something like "/dev/xxxxx". If the first argument
+to SERIAL is 'disconnect' then the Bytetrain will disconnect from the
+port, even if it is being used to print at the time. The 'baudrate' defaults
+to 250000, but any other baud rate can be specified.
+
+STATUS
+Return status information about some of the internals of the Bytetrain.
+The output is given as key/value pairs, with the value possibly wrapped
+in double quotes ("). This information can be used to determine how many
+lines of a current print have been read from the file, sent to the printer
+etc. The keys have the following meanings:
+
+ack		- the number of gcode command that have been acknowledged
+		  during this print.
+checksum_error	- the number of checksum errors that have been reported
+		  by the machine during this print
+connected	- Indicates is the Bytetrain has been instructed to connect
+		  to a serial port (by the SERIAL command)
+direct_sent	- How many lines of gcode have been send directly (by the
+		  GCODE command)
+filename	- The filename of the file being printed (if any).
+flow_error	- The number of line-number flow errors have been reported
+		  by the machine during this print.
+gcode_okay	- Status of the internal gcode buffer
+gcode_open	- Indicates that the Bytetrain has a gcode file open for reading
+gcode_popped	- The number of lines read from the file being printed
+gcode_read	- The number of gcode commands read from the file being printed
+gcode_sent	- The number of gcode commands send to the machine
+ok		- The number of "ok" acknowledgements received this print
+paused		- Indicates if the Bytetrain is paused (via PAUSE/RESUME commands)
+port		- The serial port used by the Bytetrain (if connected)
+printing 	- Indicates if the Bytetrain is actively printing a file
+speed		- The serial port baud rate (if connected)
+
