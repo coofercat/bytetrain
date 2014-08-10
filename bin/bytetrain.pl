@@ -15,7 +15,13 @@ MAIN: {
   $| = 1;
   my $train = ByteTrain->new();
 
-  $train->run();
+  eval {
+    $train->run();
+  };
+  if($@) {
+    print "Bytetrain error:\n";
+    print $@;
+  }
 }
 
 # This is for Vim users - please don't delete it

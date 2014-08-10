@@ -19,6 +19,7 @@ use strict;
 use warnings;
 
 use IO::Select;
+use ByteTrain::Stacktrace;
 
 sub new {
   my ($class) =@_;
@@ -38,7 +39,7 @@ sub add_fd {
   my ($self, $fd, $obj) = @_;
 
   my $key = fileno($fd);
-
+  ByteTrain::Stacktrace::print() if(!defined($key));
   $self->{SELECT}->add($fd);
   $self->{FDS_TO_OBJS}->{$key} = $obj;
 }
@@ -48,7 +49,7 @@ sub remove_fd {
   my ($self, $fd) = @_;
 
   my $key = fileno($fd);
-
+  ByteTrain::Stacktrace::print() if(!defined($key));
   $self->{SELECT}->remove($fd);
   delete($self->{FDS_TO_OBJS}->{$key});
 }
@@ -73,6 +74,7 @@ sub fd_to_obj {
   my ($self, $fd) = @_;
 
   my $key = fileno($fd);
+  ByteTrain::Stacktrace::print() if(!defined($key));
   return $self->{FDS_TO_OBJS}->{$key};
 }
 

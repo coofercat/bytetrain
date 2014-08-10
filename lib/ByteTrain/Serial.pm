@@ -44,7 +44,7 @@ sub new {
   $self->{WRITE_BUF} = [];
   $self->{READ_BUFFER_FULL} = 0;
 
-  $self->{VERBOSITY} = 0;
+  $self->{VERBOSITY} = 10;
 
   return $self;
 }

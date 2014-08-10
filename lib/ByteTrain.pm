@@ -194,6 +194,8 @@ sub process_control {
 
     } elsif($buf eq 'STATUS') {
       my @statuses = ($self->{GCODE}->status(), $self->{FLOW}->status(), $self->{SERIAL}->status());
+      # Should we check for illegal statuses here? Eg. printing = 1 but connected = 0?
+      # If so, we could clean up and then refetch status before returning it
       my @out = ('printing=' . $self->{PRINTING});
       foreach my $item (@statuses) {
         push @out, $self->hash_to_string($item, 'filename');
