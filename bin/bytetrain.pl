@@ -3,6 +3,12 @@
 use strict;
 use warnings;
 
+# Make relative 'use' work
+BEGIN {
+  use File::Basename;
+  chdir(dirname($0));
+}
+
 use lib '../cpan';
 use lib '../lib';
 

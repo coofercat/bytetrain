@@ -13,11 +13,15 @@ contains an Arduino Mega which provides a serial-over-USB connection.
 
 The next step is to start up the Bytetrain. The only Perl pre-requisites are
 probably already provided with your Perl distribution, although you may need
-to install a couple of CPAN modules if not (see cpan.org for help with that).
-The Bytetrain can be started on the command line, and will will in the
+to install a couple of CPAN modules if not. You can do this using cpanm:
+
+	$ curl -LO http://xrl.us/cpanm
+	$ perl cpann --installdeps .
+
+The Bytetrain can be started on the command line, and will run in the
 foreground thusly:
 
-	$ ./bytetrain.pl
+	$ bin/bytetrain.pl
 
 Ordinarily, the Bytetrain doesn't need any special user permissions and
 should be run as an ordinary user (although it's okay to run as root if you
@@ -52,7 +56,7 @@ Your machine may be on a different /dev device, /dev/ttyUSB0 is another
 common one.
 
 Assuming you've connected successfully, your machine should have reset
-and will probably have send lots of startup information down the serial port.
+and will probably have sent lots of startup information down the serial port.
 hear.pl will have echoed it all to STDOUT; any serial received from a
 machine is prefixed with "RX:".
 
