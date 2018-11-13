@@ -159,7 +159,7 @@ sub open_serial {
   # on it (which you can't do with the SerialPort object)
   my $new = IO::File->new();
   unless(open($new, "+<:bytes", $port)) {
-    #print "Failed to open $port: $!\n";
+    #print "Failed to open '$port': $!\n";
     return 0;
   }
   # Try to set the baud rate...
