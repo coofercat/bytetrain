@@ -1,0 +1,16 @@
+[Unit]
+Description=Bytetrain Gcode Sender Daemon
+After=network.target
+
+[Service]
+Type=simple
+User=bytetrain
+Group=bytetrain
+RuntimeDirectory=bytetrain
+WorkingDirectory=/opt/bytetrain
+ExecStart=/opt/bytetrain/bin/bytetrain.pl
+Nice=-19
+
+[Install]
+WantedBy=multi-user.target
+
